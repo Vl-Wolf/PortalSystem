@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "InputMappingContext.h"
 #include "GameFramework/Actor.h"
+#include "PS/PS_PortalBase.h"
 
 #include "PS_Weapon.generated.h"
 
@@ -68,5 +69,11 @@ protected:
 	APSCharacter* Character = nullptr;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Shoot", meta=(AllowPrivateAccess=true))
-	TSubclassOf<AActor> Portal = nullptr;
+	TSubclassOf<APS_PortalBase> Portal = nullptr;
+	
+	UPROPERTY()
+	APS_PortalBase* LeftPortal = nullptr;
+	
+	UPROPERTY()
+	APS_PortalBase* RightPortal = nullptr;
 };
