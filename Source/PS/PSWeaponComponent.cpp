@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Animation/AnimInstance.h"
 #include "Engine/LocalPlayer.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Engine/World.h"
 
 // Sets default values for this component's properties
@@ -29,7 +30,7 @@ void UPSWeaponComponent::Fire()
 	}
 
 	// Try and fire a projectile
-	if (ProjectileClass != nullptr)
+	/*if (ProjectileClass != nullptr)
 	{
 		UWorld* const World = GetWorld();
 		if (World != nullptr)
@@ -46,7 +47,7 @@ void UPSWeaponComponent::Fire()
 			// Spawn the projectile at the muzzle
 			World->SpawnActor<APSProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		}
-	}
+	}*/
 	
 	// Try and play the sound if specified
 	if (FireSound != nullptr)
@@ -64,6 +65,45 @@ void UPSWeaponComponent::Fire()
 			AnimInstance->Montage_Play(FireAnimation, 1.f);
 		}
 	}
+	
+	FVector TargetPoint = FVector::ZeroVector;
+	
+	APlayerController* PC = Cast<APlayerController>(Character->GetController());
+	if (PC)
+	{
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		PC->GetPlayerViewPoint(CameraLocation, CameraRotation);
+		
+		const FVector TraceEnd = CameraLocation + CameraRotation.Vector() * TraceDistance;
+		
+		FHitResult HitResult;
+		FCollisionQueryParams CollisionQueryParams;
+		CollisionQueryParams.AddIgnoredActor(Character);
+
+		if (GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, TraceEnd, ECC_Visibility, CollisionQueryParams))
+		{
+			TargetPoint = HitResult.ImpactPoint;
+			DrawDebugSphere(GetWorld(), TargetPoint, 8.0f, 8, FColor::Red, false, 1.0f, 0, 1.5f);
+		}
+		else
+		{
+			TargetPoint = TraceEnd;
+			DrawDebugSphere(GetWorld(), TargetPoint, 8.0f, 8, FColor::Red, false, 1.0f, 0, 1.5f);
+		}
+		
+		SpawnLineTrace(TargetPoint);
+	}
+	
+}
+
+void UPSWeaponComponent::SpawnLineTrace(FVector& TargetPoint)
+{
+	FTransform NozzleTransform = GetSocketTransform(TEXT("Muzzle"), RTS_World);
+	FVector NozzleLocation = NozzleTransform.GetLocation();
+	FVector Direction = (TargetPoint - NozzleLocation).GetSafeNormal();
+	
+	DrawDebugLine(GetWorld(), NozzleLocation, TargetPoint, FColor::Red, false, 1.0f, 0, 1.5f);
 }
 
 bool UPSWeaponComponent::AttachWeapon(APSCharacter* TargetCharacter)
@@ -86,14 +126,16 @@ bool UPSWeaponComponent::AttachWeapon(APSCharacter* TargetCharacter)
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			// Set the priority of the mapping to 1, so that it overrides the Jump action with the Fire action when using touch input
-			Subsystem->AddMappingContext(FireMappingContext, 1);
+			Subsystem->AddMappingContext(PortalMappingContext, 1);
 		}
 
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
-			// Fire
-			EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &UPSWeaponComponent::Fire);
+			EnhancedInputComponent->BindAction(FirstPortalAction, ETriggerEvent::Triggered, this, &UPSWeaponComponent::Fire);
+			EnhancedInputComponent->BindAction(SecondPortalAction, ETriggerEvent::Triggered, this, &UPSWeaponComponent::Fire);
 		}
+		else
+			UE_LOG(LogTemplateCharacter, Error, TEXT("'%s' Failed to find an Enhanced Input Component!"), *GetNameSafe(this));
 	}
 
 	return true;
@@ -109,7 +151,7 @@ void UPSWeaponComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 		{
 			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 			{
-				Subsystem->RemoveMappingContext(FireMappingContext);
+				Subsystem->RemoveMappingContext(PortalMappingContext);
 			}
 		}
 	}
