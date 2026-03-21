@@ -9,6 +9,7 @@
 #include "PS/Character/PSCharacter.h"
 
 
+
 // Sets default values
 APS_Weapon::APS_Weapon()
 {
@@ -36,15 +37,15 @@ void APS_Weapon::BeginPlay()
 
 		if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerController->InputComponent))
 		{
-			EnhancedInputComponent->BindAction(FirstPortalAction, ETriggerEvent::Triggered, this, &APS_Weapon::Fire);
-			EnhancedInputComponent->BindAction(SecondPortalAction, ETriggerEvent::Triggered, this, &APS_Weapon::Fire);
+			EnhancedInputComponent->BindAction(FirstPortalAction, ETriggerEvent::Triggered, this, &APS_Weapon::Fire, EPortalType::Left);
+			EnhancedInputComponent->BindAction(SecondPortalAction, ETriggerEvent::Triggered, this, &APS_Weapon::Fire, EPortalType::Right);
 		}
 		else
 			UE_LOG(LogTemp, Error, TEXT("'%s' Failed to find an Enhanced Input Component!"), *GetNameSafe(this));
 	}
 }
 
-void APS_Weapon::Fire()
+void APS_Weapon::Fire(EPortalType Type)
 {
 	if (FireSound != nullptr)
 	{
@@ -78,7 +79,8 @@ void APS_Weapon::Fire()
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, TraceEnd, ECC_Visibility, CollisionQueryParams))
 		{
 			TargetPoint = HitResult.ImpactPoint;
-			DrawDebugSphere(GetWorld(), TargetPoint, 8.0f, 8, FColor::Red, false, 1.0f, 0, 1.5f);
+			DrawDebugSphere(GetWorld(), TargetPoint, 8.0f, 8, FColor::Green, false, 1.0f, 0, 1.5f);
+			SpawnPortal(HitResult, Type);
 		}
 		else
 		{
@@ -94,9 +96,24 @@ void APS_Weapon::SpawnLineTrace(FVector& TargetPoint)
 {
 	FTransform NozzleTransform = SkeletalMesh->GetSocketTransform(TEXT("Muzzle"), RTS_World);
 	FVector NozzleLocation = NozzleTransform.GetLocation();
-	FVector Direction = (TargetPoint - NozzleLocation).GetSafeNormal();
 	
 	DrawDebugLine(GetWorld(), NozzleLocation, TargetPoint, FColor::Red, false, 1.0f, 0, 1.5f);
+}
+
+void APS_Weapon::SpawnPortal(FHitResult HitResult, EPortalType Type)
+{
+	if (Portal)
+	{
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Owner = this;
+		SpawnParams.Instigator = GetInstigator();
+		
+		AActor* PortalInWorld = GetWorld()->SpawnActor<AActor>(Portal, HitResult.Location, HitResult.ImpactNormal.Rotation(), SpawnParams);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("APS_Weapon::SpawnPortal - Portal Class is NULL"))
+	}
 }
 
 void APS_Weapon::AttachToCharacter(USkeletalMeshComponent* CharacterMesh, FName SocketName)
