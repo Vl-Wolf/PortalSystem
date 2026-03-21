@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "PSCharacter.h"
-#include "PSProjectile.h"
+#include "PS/Weapon/Projectile/PSProjectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -35,6 +35,31 @@ APSCharacter::APSCharacter()
 	Mesh1P->CastShadow = false;
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
+}
+
+void APSCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	if (PortalGun)
+	{
+		FActorSpawnParameters SpawnInfo;
+		SpawnInfo.Owner = this;
+		SpawnInfo.Instigator = this;
+		
+		PortalGunInstance = GetWorld()->SpawnActor<APS_Weapon>(PortalGun, SpawnInfo);
+		if (PortalGunInstance)
+		{
+			PortalGunInstance->AttachToCharacter(GetMesh1P(), PortalGunSocketName);
+		}
+	}
+}
+
+void APSCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	
+	PortalGunInstance->Destroy();
 }
 
 //////////////////////////////////////////////////////////////////////////// Input

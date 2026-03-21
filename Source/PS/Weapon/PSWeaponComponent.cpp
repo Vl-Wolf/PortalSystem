@@ -2,8 +2,8 @@
 
 
 #include "PSWeaponComponent.h"
-#include "PSCharacter.h"
-#include "PSProjectile.h"
+#include "PS/Character/PSCharacter.h"
+#include "PS/Weapon/Projectile/PSProjectile.h"
 #include "GameFramework/PlayerController.h"
 #include "Camera/PlayerCameraManager.h"
 #include "Kismet/GameplayStatics.h"

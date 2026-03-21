@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
+#include "PS/Weapon/PS_Weapon.h"
 #include "PSCharacter.generated.h"
 
 class UInputComponent;
@@ -47,6 +48,16 @@ class APSCharacter : public ACharacter
 	
 public:
 	APSCharacter();
+	
+	virtual void BeginPlay() override;
+	
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	APS_Weapon* GetWeapon()
+	{
+		return PortalGunInstance ? PortalGunInstance : nullptr;
+	}
 
 protected:
 	/** Called for movement input */
@@ -54,12 +65,20 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon", meta=(AllowPrivateAccess=true))
+	TSubclassOf<APS_Weapon> PortalGun;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Weapon", meta=(AllowPrivateAccess=true))
+	FName PortalGunSocketName = TEXT("WeaponSocket");
+	
+	UPROPERTY()
+	APS_Weapon* PortalGunInstance = nullptr;
 
 protected:
-	// APawn interface
+	
 	virtual void NotifyControllerChanged() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
 
 public:
 	/** Returns Mesh1P subobject **/

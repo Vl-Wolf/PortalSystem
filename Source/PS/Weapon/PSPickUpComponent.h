@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/SphereComponent.h"
-#include "PSCharacter.h"
+#include "PS/Character/PSCharacter.h"
 #include "PSPickUpComponent.generated.h"
 
 // Declaration of the delegate that will be called when someone picks this up
