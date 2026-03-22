@@ -104,54 +104,43 @@ void APS_Weapon::SpawnPortal(FHitResult HitResult, EPortalType Type)
 {
 	if (Portal)
 	{
-		/*FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.Instigator = GetInstigator();*/
+		FTransform SpawnTransform(HitResult.ImpactNormal.Rotation(), HitResult.Location);
 		
-		/*APS_PortalBase* PortalInWorld = GetWorld()->SpawnActorDeferred<APS_PortalBase>(Portal, FTransform(HitResult.ImpactNormal.Rotation(), HitResult.Location), this, GetInstigator());
-		FColor PortalColor;
-		switch (Type)
-		{
-		case Left:
-			PortalColor = FColor(0, 0, 255);
-			break;
-		case Right:
-			PortalColor = FColor(255, 0, 0);
-			break;
-		default:
-			PortalColor = FColor(0, 0, 0);
-			
-		}
-		PortalInWorld->SetPortalColor(PortalColor);
-		PortalInWorld->FinishSpawning(FTransform(HitResult.ImpactNormal.Rotation(), HitResult.Location));*/
-		
-		FColor PortalColor;
 		switch (Type)
 		{
 		case Left:
 			if (LeftPortal)
 				LeftPortal->Destroy();
-			LeftPortal = GetWorld()->SpawnActorDeferred<APS_PortalBase>(Portal, FTransform(HitResult.ImpactNormal.Rotation(), HitResult.Location), this, GetInstigator());
 			
+			LeftPortal = GetWorld()->SpawnActorDeferred<APS_PortalBase>(Portal, SpawnTransform, this, GetInstigator());
+			LeftPortal->FinishSpawning(SpawnTransform);
 			
-			PortalColor = FColor(0, 0, 255);
+			//PortalColor = FColor(0, 0, 255);
+			//LeftPortal->SetPortalColor(PortalColor);
 			
-			LeftPortal->SetPortalColor(PortalColor);
 			if (RightPortal)
-				LeftPortal->SetOtherPortal(RightPortal);
-			LeftPortal->FinishSpawning(FTransform(HitResult.ImpactNormal.Rotation(), HitResult.Location));
+			{
+				LeftPortal->LinkToPortal(RightPortal);
+				RightPortal->LinkToPortal(LeftPortal);
+			}
+			
 			break;
 		case Right:
 			if (RightPortal)
 				RightPortal->Destroy();
-			RightPortal = GetWorld()->SpawnActorDeferred<APS_PortalBase>(Portal, FTransform(HitResult.ImpactNormal.Rotation(), HitResult.Location), this, GetInstigator());
 			
-			PortalColor = FColor(255, 0, 0);
+			RightPortal = GetWorld()->SpawnActorDeferred<APS_PortalBase>(Portal, SpawnTransform, this, GetInstigator());
+			RightPortal->FinishSpawning(SpawnTransform);
 			
-			RightPortal->SetPortalColor(PortalColor);
+			//PortalColor = FColor(255, 0, 0);
+			//RightPortal->SetPortalColor(PortalColor);
+			
 			if (LeftPortal)
-				RightPortal->SetOtherPortal(LeftPortal);
-			RightPortal->FinishSpawning(FTransform(HitResult.ImpactNormal.Rotation(), HitResult.Location));
+			{
+				RightPortal->LinkToPortal(LeftPortal);
+				LeftPortal->LinkToPortal(RightPortal);
+			}
+			
 			break;
 		default:
 			break;
