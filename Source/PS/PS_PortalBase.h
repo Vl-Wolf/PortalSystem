@@ -18,6 +18,9 @@ class PS_API APS_PortalBase : public AActor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render", meta=(AllowPrivateAccess=true))
 	UStaticMeshComponent* PortalMesh;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render|Debug", meta=(AllowPrivateAccess=true))
+	UStaticMeshComponent* PortalMeshTest;
+	
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render", meta=(AllowPrivateAccess=true))
 	UDecalComponent* DecalComponent;*/
 	
@@ -89,8 +92,19 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render", meta=(AllowPrivateAccess=true))
 	UMaterialInterface* PortalBaseMaterial;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Render|Debug", meta=(AllowPrivateAccess=true))
+	bool bIsDebug = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render|Debug", meta=(AllowPrivateAccess=true))
+	UMaterialInterface* PortalBaseMaterialTest;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render|Debug", meta=(AllowPrivateAccess=true))
+	UMaterialInstanceDynamic* DynamicMaterialTest = nullptr;
+	
 	/*UFUNCTION()
 	void OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);*/
+	
+	void UpdateCaptureTransform();
 
 public:
 

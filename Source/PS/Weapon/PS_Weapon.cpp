@@ -106,6 +106,7 @@ void APS_Weapon::SpawnPortal(FHitResult HitResult, EPortalType Type)
 	{
 		FTransform SpawnTransform(HitResult.ImpactNormal.Rotation(), HitResult.Location);
 		
+		FColor PortalColor;
 		switch (Type)
 		{
 		case Left:
@@ -113,6 +114,8 @@ void APS_Weapon::SpawnPortal(FHitResult HitResult, EPortalType Type)
 				LeftPortal->Destroy();
 			
 			LeftPortal = GetWorld()->SpawnActorDeferred<APS_PortalBase>(Portal, SpawnTransform, this, GetInstigator());
+			PortalColor = FColor(0, 0, 255);
+			LeftPortal->SetPortalColor(PortalColor);
 			LeftPortal->FinishSpawning(SpawnTransform);
 			
 			//PortalColor = FColor(0, 0, 255);
@@ -130,6 +133,8 @@ void APS_Weapon::SpawnPortal(FHitResult HitResult, EPortalType Type)
 				RightPortal->Destroy();
 			
 			RightPortal = GetWorld()->SpawnActorDeferred<APS_PortalBase>(Portal, SpawnTransform, this, GetInstigator());
+			PortalColor = FColor(255, 0, 0);
+			RightPortal->SetPortalColor(PortalColor);
 			RightPortal->FinishSpawning(SpawnTransform);
 			
 			//PortalColor = FColor(255, 0, 0);
