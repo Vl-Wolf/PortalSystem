@@ -15,20 +15,17 @@ class PS_API APS_PortalBase : public AActor
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render", meta=(AllowPrivateAccess=true))
 	USceneComponent* SceneComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render", meta=(AllowPrivateAccess=true))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Portal", meta=(AllowPrivateAccess=true))
 	UStaticMeshComponent* PortalMesh;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render|Debug", meta=(AllowPrivateAccess=true))
-	UStaticMeshComponent* PortalMeshTest;
-	
+		
 	/*UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render", meta=(AllowPrivateAccess=true))
 	UDecalComponent* DecalComponent;*/
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render", meta=(AllowPrivateAccess=true))
 	USceneCaptureComponent2D* CaptureComponent;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render", meta=(AllowPrivateAccess=true))
-	UBoxComponent* TeleportTrigger;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Portal", meta=(AllowPrivateAccess=true))
+	UBoxComponent* PassthroughBox;
 
 public:
 
@@ -61,7 +58,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure)
 	USceneCaptureComponent2D* GetOtherSceneCapture() const
 	{
-		return CaptureComponent;
+		return OtherPortal->CaptureComponent;
 	}
 	
 	/*UFUNCTION(BlueprintCallable, BlueprintPure)
@@ -69,6 +66,11 @@ public:
 	{
 		return DecalComponent;
 	}*/
+	
+	void SetWallComponent(UPrimitiveComponent* Wall)
+	{
+		WallComponent = Wall;
+	}
 
 protected:
 
@@ -94,17 +96,28 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Render|Debug", meta=(AllowPrivateAccess=true))
 	bool bIsDebug = false;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render|Debug", meta=(AllowPrivateAccess=true))
-	UMaterialInterface* PortalBaseMaterialTest;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Render|Debug", meta=(AllowPrivateAccess=true))
-	UMaterialInstanceDynamic* DynamicMaterialTest = nullptr;
-	
-	/*UFUNCTION()
-	void OnTriggerBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);*/
-	
+		
 	void UpdateCaptureTransform();
+	
+	void CheckTeleport();
+	
+	bool bPlayerWasInFront = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Config", meta=(AllowPrivateAccess=true))
+	float TeleportRadius = 200.0f;
+	
+	UPROPERTY()
+	UPrimitiveComponent* WallComponent = nullptr;
+	
+	UFUNCTION()
+	void OnPassthroughBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+		bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void OnPassthroughEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 
 public:
 
