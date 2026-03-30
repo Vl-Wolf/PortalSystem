@@ -129,9 +129,22 @@ void APS_PortalBase::CheckTeleport()
 			UE_LOG(LogTemp, Warning, TEXT(" Player Location: X=%f Y=%f Z=%f | Player Rotation: Roll=%f Pitch=%f Yaw=%f"), 
 				Player->GetActorLocation().X, Player->GetActorLocation().Y, Player->GetActorLocation().Z,
 				Player->GetActorRotation().Roll, Player->GetActorRotation().Pitch, Player->GetActorRotation().Yaw);
+			
+			FRotator PortalRotationDiff = (OtherPortal->GetActorRotation() - GetActorRotation()).GetNormalized();
+			PortalRotationDiff.Yaw += 180.0f;
+			
+			FRotator NewRotation = Player->GetActorRotation() + PortalRotationDiff;
+			NewRotation.Normalize();			
 						
 			Player->SetActorLocationAndRotation(
-				OtherPortal->GetActorLocation(), Player->GetActorRotation());
+				OtherPortal->GetActorLocation(), NewRotation);
+			
+			if (APlayerController* PC = Cast<APlayerController>(Player->GetController()))
+			{
+				FRotator ControlRotation = PC->GetControlRotation() + PortalRotationDiff;
+				ControlRotation.Normalize();
+				PC->SetControlRotation(ControlRotation);
+			}
 			
 			UE_LOG(LogTemp, Warning, TEXT(" New Player Location: X=%f Y=%f Z=%f | New Player Rotation: Roll=%f Pitch=%f Yaw=%f"), 
 				Player->GetActorLocation().X, Player->GetActorLocation().Y, Player->GetActorLocation().Z,
