@@ -102,6 +102,8 @@ protected:
 	
 	void CheckTeleport();
 	
+	FVector UpdateVelocity(FVector Velocity);
+	
 	bool bPlayerWasInFront = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Config", meta=(AllowPrivateAccess=true))

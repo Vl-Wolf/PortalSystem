@@ -9,6 +9,7 @@
 #include "Components/SceneCaptureComponent2D.h"
 #include "Engine/TextureRenderTarget2D.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 
@@ -71,7 +72,6 @@ void APS_PortalBase::BeginPlay()
 	RenderTarget->UpdateResourceImmediate(true);
 	
 	CaptureComponent->TextureTarget = RenderTarget;
-	
 }
 
 void APS_PortalBase::UpdateCaptureTransform()
@@ -81,7 +81,6 @@ void APS_PortalBase::UpdateCaptureTransform()
 	
 	APlayerCameraManager* CameraManager = UGameplayStatics::GetPlayerCameraManager(GetWorld(), 0);
 	
-	//APSCharacter* Character = Cast<APSCharacter>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
 	if (!CameraManager)
 		return;
 		
@@ -137,17 +136,12 @@ void APS_PortalBase::CheckTeleport()
 	FVector ToPlayer = Player->GetActorLocation() - GetActorLocation();
 	
 	float CurrentDot = FVector::DotProduct(PortalForward, ToPlayer);
-	//UE_LOG(LogTemp, Warning, TEXT("Current Dot : %f"), CurrentDot);
 	
 	if (bPlayerWasInFront && CurrentDot < 0.f)
 	{
 		float Distance = FVector::Dist(GetActorLocation(), Player->GetActorLocation());
-		//UE_LOG(LogTemp, Warning, TEXT("Distance : %f"), Distance);
 		if (Distance < TeleportRadius)
 		{
-			/*UE_LOG(LogTemp, Warning, TEXT(" Player Location: X=%f Y=%f Z=%f | Player Rotation: Roll=%f Pitch=%f Yaw=%f"), 
-				Player->GetActorLocation().X, Player->GetActorLocation().Y, Player->GetActorLocation().Z,
-				Player->GetActorRotation().Roll, Player->GetActorRotation().Pitch, Player->GetActorRotation().Yaw);*/
 			
 			FRotator PortalRotationDiff = (OtherPortal->GetActorRotation() - GetActorRotation()).GetNormalized();
 			PortalRotationDiff.Yaw += 180.0f;
@@ -155,8 +149,8 @@ void APS_PortalBase::CheckTeleport()
 			FRotator NewRotation = Player->GetActorRotation() + PortalRotationDiff;
 			NewRotation.Normalize();			
 						
-			Player->SetActorLocationAndRotation(
-				OtherPortal->GetActorLocation(), NewRotation);
+			Player->SetActorLocation(OtherPortal->GetActorLocation());
+			Player->SetActorRotation(NewRotation);
 			
 			if (APlayerController* PC = Cast<APlayerController>(Player->GetController()))
 			{
@@ -165,16 +159,31 @@ void APS_PortalBase::CheckTeleport()
 				PC->SetControlRotation(ControlRotation);
 			}
 			
-			/*UE_LOG(LogTemp, Warning, TEXT(" New Player Location: X=%f Y=%f Z=%f | New Player Rotation: Roll=%f Pitch=%f Yaw=%f"), 
-				Player->GetActorLocation().X, Player->GetActorLocation().Y, Player->GetActorLocation().Z,
-				Player->GetActorRotation().Roll, Player->GetActorRotation().Pitch, Player->GetActorRotation().Yaw);*/
+			FVector NewVelocity = UpdateVelocity(Player->GetCharacterMovement()->Velocity);
+			Player->GetCharacterMovement()->Velocity = NewVelocity;
 			
 			OtherPortal->bPlayerWasInFront = true;
 		}
 	}
 
 	bPlayerWasInFront = CurrentDot >= 0.f;
-	//UE_LOG(LogTemp, Log, TEXT("bPlayerWasInFront=%s"), bPlayerWasInFront ? TEXT("true") : TEXT("false"));
+}
+
+FVector APS_PortalBase::UpdateVelocity(FVector Velocity)
+{
+	if (!OtherPortal)
+		return FVector::ZeroVector;
+	
+	FVector LocalVelocity = UKismetMathLibrary::MirrorVectorByNormal(
+		UKismetMathLibrary::MirrorVectorByNormal(
+			GetActorTransform().InverseTransformVectorNoScale(Velocity.GetUnsafeNormal()), 
+		FVector(1.0f, 0.0, 0.0f)),
+		FVector(0.0f, 1.0f, 0.0f));
+	
+	FVector WorldVelocity = OtherPortal->GetTransform().TransformVectorNoScale(LocalVelocity);
+	
+	return WorldVelocity * Velocity.Length();
+	
 }
 
 void APS_PortalBase::OnPassthroughBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
