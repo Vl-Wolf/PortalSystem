@@ -6,6 +6,8 @@ Saved
 .vscode
 .vs
 .idea
+Build
+
 
 #Files
 *.VC.db
@@ -17,3 +19,6 @@ Saved
 *.xcodeproj
 *.xcworkspace
 *.vsconfig
+*.pdb
+*.sym
+*.log

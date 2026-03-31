@@ -79,13 +79,15 @@ void APS_Weapon::Fire(EPortalType Type)
 		if (GetWorld()->LineTraceSingleByChannel(HitResult, CameraLocation, TraceEnd, ECC_Visibility, CollisionQueryParams))
 		{
 			TargetPoint = HitResult.ImpactPoint;
-			DrawDebugSphere(GetWorld(), TargetPoint, 8.0f, 8, FColor::Green, false, 1.0f, 0, 1.5f);
+			if (bIsDrawDebug)
+				DrawDebugSphere(GetWorld(), TargetPoint, 8.0f, 8, FColor::Green, false, 1.0f, 0, 1.5f);
 			SpawnPortal(HitResult, Type);
 		}
 		else
 		{
 			TargetPoint = TraceEnd;
-			DrawDebugSphere(GetWorld(), TargetPoint, 8.0f, 8, FColor::Red, false, 1.0f, 0, 1.5f);
+			if (bIsDrawDebug)
+				DrawDebugSphere(GetWorld(), TargetPoint, 8.0f, 8, FColor::Red, false, 1.0f, 0, 1.5f);
 		}
 		
 		SpawnLineTrace(TargetPoint);
@@ -97,7 +99,8 @@ void APS_Weapon::SpawnLineTrace(FVector& TargetPoint)
 	FTransform NozzleTransform = SkeletalMesh->GetSocketTransform(TEXT("Muzzle"), RTS_World);
 	FVector NozzleLocation = NozzleTransform.GetLocation();
 	
-	DrawDebugLine(GetWorld(), NozzleLocation, TargetPoint, FColor::Red, false, 1.0f, 0, 1.5f);
+	if (bIsDrawDebug)
+		DrawDebugLine(GetWorld(), NozzleLocation, TargetPoint, FColor::Red, false, 1.0f, 0, 1.5f);
 }
 
 void APS_Weapon::SpawnPortal(FHitResult HitResult, EPortalType Type)

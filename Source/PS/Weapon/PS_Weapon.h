@@ -76,4 +76,7 @@ protected:
 	
 	UPROPERTY()
 	APS_PortalBase* RightPortal = nullptr;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Shoot|Debug", meta=(AllowPrivateAccess=true))
+    bool bIsDrawDebug = false;
 };
